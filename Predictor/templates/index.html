@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Boston House Price Predictor</title>
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M12 17.0011H12.01M8 11.5289C9.06151 10.5788 10.4633 10.0011 12 10.0011C13.5367 10.0011 14.9385 10.5788 16 11.5289M10 14.265C10.5308 13.79 11.2316 13.5011 12 13.5011C12.7684 13.5011 13.4692 13.79 14 14.265M3 14.6001V12.1302C3 10.9815 3 10.4071 3.14805 9.87819C3.2792 9.40966 3.49473 8.96898 3.78405 8.5778C4.11067 8.1362 4.56404 7.78358 5.47078 7.07834L8.07078 5.05612C9.47608 3.96311 10.1787 3.4166 10.9546 3.20653C11.6392 3.02116 12.3608 3.02116 13.0454 3.20653C13.8213 3.4166 14.5239 3.96311 15.9292 5.05612L18.5292 7.07834C19.436 7.78358 19.8893 8.1362 20.2159 8.5778C20.5053 8.96898 20.7208 9.40966 20.8519 9.87819C21 10.4071 21 10.9815 21 12.1302V14.6001C21 16.8403 21 17.9604 20.564 18.816C20.1805 19.5687 19.5686 20.1806 18.816 20.5641C17.9603 21.0001 16.8402 21.0001 14.6 21.0001H9.4C7.15979 21.0001 6.03969 21.0001 5.18404 20.5641C4.43139 20.1806 3.81947 19.5687 3.43597 18.816C3 17.9604 3 16.8403 3 14.6001Z' stroke='%236a1b9a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet" type="text/css" />
+
+<style>
+:root {
+  --primary: #6a1b9a;
+  --secondary: #9575cd;
+  --accent: #ff7043;
+  --light-bg: #f5f6fa;
+  --text-dark: #2d1b4e;
+  --border: #e0e0e0;
+}
+* { box-sizing: border-box; margin:0; padding:0; font-family: "Poppins", sans-serif; }
+body { background: linear-gradient(135deg,#ede7f6,#fff); min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px; transition:0.3s; }
+.container { background:#fff; width:100%; max-width:850px; padding:2rem; border-radius:18px; box-shadow:0 8px 40px rgba(106,27,154,0.15); transition:transform 0.3s ease; }
+.container:hover { transform:scale(1.01); }
+header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; }
+header h1 { color:var(--text-dark); font-size:1.9rem; display:flex; align-items:center; gap:10px; }
+.logo svg { width:58px; height:58px; stroke: var(--primary);}
+#lang-btn { padding:9px 18px; border:none; border-radius:10px; cursor:pointer; background:var(--accent); color:#fff; font-weight:600; transition:background 0.3s; }
+#lang-btn:hover { background:#e64a19; }
+form { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:1.2rem 1.5rem; }
+label { display:flex; flex-direction:column; font-weight:600; color:#333; font-size:0.9rem; }
+input { margin-top:6px; padding:10px; border:1px solid var(--border); border-radius:10px; font-size:0.9rem; outline:none; transition:border-color 0.3s, box-shadow 0.3s; }
+input:focus { border-color:var(--primary); box-shadow:0 0 5px rgba(106,27,154,0.3); }
+button[type="submit"] { grid-column:1/-1; padding:14px; background:var(--primary); color:#fff; font-weight:600; font-size:1rem; border:none; border-radius:12px; cursor:pointer; transition:background 0.3s; }
+button[type="submit"]:hover { background:#4a148c; }
+.result { grid-column:1/-1; margin-top:20px; background:#ede7f6; padding:1rem; border-radius:10px; text-align:center; font-size:1.2rem; color:#311b92; animation:fadeIn 0.6s ease; }
+@keyframes fadeIn { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
+.rtl { direction:rtl; font-family: "Vazir", sans-serif; }
+</style>
+</head>
+
+<body>
+<div class="container">
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 17.0011H12.01M8 11.5289C9.06151 10.5788 10.4633 10.0011 12 10.0011C13.5367 10.0011 14.9385 10.5788 16 11.5289M10 14.265C10.5308 13.79 11.2316 13.5011 12 13.5011C12.7684 13.5011 13.4692 13.79 14 14.265M3 14.6001V12.1302C3 10.9815 3 10.4071 3.14805 9.87819C3.2792 9.40966 3.49473 8.96898 3.78405 8.5778C4.11067 8.1362 4.56404 7.78358 5.47078 7.07834L8.07078 5.05612C9.47608 3.96311 10.1787 3.4166 10.9546 3.20653C11.6392 3.02116 12.3608 3.02116 13.0454 3.20653C13.8213 3.4166 14.5239 3.96311 15.9292 5.05612L18.5292 7.07834C19.436 7.78358 19.8893 8.1362 20.2159 8.5778C20.5053 8.96898 20.7208 9.40966 20.8519 9.87819C21 10.4071 21 10.9815 21 12.1302V14.6001C21 16.8403 21 17.9604 20.564 18.816C20.1805 19.5687 19.5686 20.1806 18.816 20.5641C17.9603 21.0001 16.8402 21.0001 14.6 21.0001H9.4C7.15979 21.0001 6.03969 21.0001 5.18404 20.5641C4.43139 20.1806 3.81947 19.5687 3.43597 18.816C3 17.9604 3 16.8403 3 14.6001Z" stroke="#6a1b9a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    </div>
+    <h1 id="title"></h1>
+    <button type="button" id="lang-btn"></button>
+  </header>
+
+  <form method="post" id="price-form">
+    {% csrf_token %}
+    <label>CRIM<input name="CRIM" type="number" step="0.01" min="0" max="100" required></label>
+    <label>ZN<input name="ZN" type="number" step="0.01" min="0" max="100" required></label>
+    <label>INDUS<input name="INDUS" type="number" step="0.01" min="0" max="30" required></label>
+    <label>CHAS<input name="CHAS" type="number" step="1" min="0" max="1" required></label>
+    <label>NOX<input name="NOX" type="number" step="0.01" min="0" max="1" required></label>
+    <label>RM<input name="RM" type="number" step="1" min="1" max="10" required></label>
+    <label>AGE<input name="AGE" type="number" step="1" min="0" max="100" required></label>
+    <label>DIS<input name="DIS" type="number" step="0.01" min="1" max="15" required></label>
+    <label>RAD<input name="RAD" type="number" step="1" min="1" max="24" required></label>
+    <label>TAX<input name="TAX" type="number" step="1" min="100" max="800" required></label>
+    <label>PTRATIO<input name="PTRATIO" type="number" step="0.1" min="10" max="30" required></label>
+    <label>B<input name="B" type="number" step="0.01" min="0" max="400" required></label>
+    <label>LSTAT<input name="LSTAT" type="number" step="0.1" min="0" max="40" required></label>
+
+    <button type="submit" id="submit-btn"></button>
+    {% if prediction %}
+      <div class="result" id="result"></div>
+    {% endif %}
+  </form>
+</div>
+
+<script>
+const langBtn = document.getElementById("lang-btn");
+const titleEl = document.getElementById("title");
+const container = document.querySelector(".container");
+const form = document.getElementById("price-form");
+const submitBtn = document.getElementById("submit-btn");
+
+const englishTexts = {
+  title: "Boston House Price Predictor",
+  submitBtn: "Predict Price",
+  langBtn: "فارسی",
+  placeholders: {
+    CRIM: "Crime rate per capita",
+    ZN: "Residential land (%)",
+    INDUS: "Industrial area (%)",
+    CHAS: "1 if near river, else 0",
+    NOX: "Nitric oxides concentration",
+    RM: "Average number of rooms",
+    AGE: "Age of house (%)",
+    DIS: "Distance to work centers",
+    RAD: "Highway accessibility index",
+    TAX: "Property tax rate",
+    PTRATIO: "Pupil-teacher ratio",
+    B: "Black population index",
+    LSTAT: "Lower status population (%)"
+  }
+};
+const farsiTexts = {
+  title: "پیش‌بینی قیمت خانه بوستون",
+  submitBtn: "پیش‌بینی قیمت",
+  langBtn: "English",
+  placeholders: {
+    CRIM: "نرخ جرم به ازای هر نفر",
+    ZN: "درصد زمین مسکونی",
+    INDUS: "درصد منطقه صنعتی",
+    CHAS: "۱ اگر کنار رودخانه باشد، در غیر این صورت ۰",
+    NOX: "غلظت اکسید نیتروژن",
+    RM: "تعداد اتاق‌ها",
+    AGE: "سن خانه (%)",
+    DIS: "فاصله تا مراکز کاری",
+    RAD: "شاخص دسترسی به بزرگراه",
+    TAX: "نرخ مالیات ملک",
+    PTRATIO: "نسبت معلم به دانش‌آموز",
+    B: "شاخص جمعیت سیاه‌پوست",
+    LSTAT: "درصد جمعیت کم‌درآمد"
+  }
+};
+
+let isFarsi = localStorage.getItem("lang") === "fa";
+
+function applyLanguage(langIsFarsi){
+  const texts = langIsFarsi ? farsiTexts : englishTexts;
+  titleEl.textContent = texts.title;
+  submitBtn.textContent = texts.submitBtn;
+  langBtn.textContent = texts.langBtn;
+  for (const key in texts.placeholders){
+    const input = document.querySelector(`input[name="${key}"]`);
+    if(input) input.placeholder = texts.placeholders[key];
+  }
+  document.body.classList.toggle("rtl", langIsFarsi);
+  container.style.fontFamily = langIsFarsi ? "'Vazir', sans-serif" : "Poppins, sans-serif";
+}
+applyLanguage(isFarsi);
+
+langBtn.addEventListener("click", ()=>{
+  isFarsi = !isFarsi;
+  localStorage.setItem("lang", isFarsi ? "fa" : "en");
+  applyLanguage(isFarsi);
+});
+
+if(performance.getEntriesByType("navigation")[0].type === "reload"){
+  form.reset();
+  const resultDiv = document.querySelector(".result");
+  if(resultDiv) resultDiv.remove();
+  localStorage.removeItem("formData");
+}
+
+form.addEventListener("input", ()=>{
+  const data = {};
+  new FormData(form).forEach((v,k)=>data[k]=v);
+  localStorage.setItem("formData", JSON.stringify(data));
+});
+
+const savedData = JSON.parse(localStorage.getItem("formData") || "{}");
+for(const [key,value] of Object.entries(savedData)){
+  const input = document.querySelector(`input[name="${key}"]`);
+  if(input) input.value = value;
+}
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  {% if prediction %}
+  const resultDiv = document.querySelector(".result");
+  if(resultDiv){
+    const predicted = {{ prediction }} * 1000;
+    resultDiv.innerHTML = `<strong>${predicted.toLocaleString()} $</strong>`;
+  }
+  {% endif %}
+});
+</script>
+
+</body>
+</html>
